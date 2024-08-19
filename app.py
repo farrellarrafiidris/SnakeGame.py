@@ -6,7 +6,7 @@ GAME_HEIGHT = 500
 GAME_SPEED = 100
 SPACE_SIZE = 50
 BODY_PART = 3
-SNAKE_COLOR = "#00FF00"
+SNAKE_COLOR = "#00FF00"  # Initial color
 FOOD_COLOR = "#FF0000"
 BACKGROUND_COLOR = "#000000"
 
@@ -16,13 +16,21 @@ class Snake:
         self.body_size = BODY_PART
         self.coordinates = []
         self.squares = []
+        self.color = SNAKE_COLOR  # Initial color of the snake
 
         for i in range(0, BODY_PART):
             self.coordinates.append([0, 0])
 
         for x, y in self.coordinates:
-            square = canvas.create_rectangle(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=SNAKE_COLOR, tags="snake")
+            square = canvas.create_rectangle(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=self.color, tags="snake")
             self.squares.append(square)
+
+    def change_color(self):
+        # Method to change the snake's color
+        new_color = random_color()
+        self.color = new_color
+        for square in self.squares:
+            canvas.itemconfig(square, fill=new_color)
 
 
 class Food:
@@ -33,6 +41,11 @@ class Food:
         self.coordinates = [x, y]
 
         canvas.create_oval(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=FOOD_COLOR, tag="food")
+
+
+def random_color():
+    # Generate a random color in hexadecimal format
+    return "#{:06x}".format(random.randint(0, 0xFFFFFF))
 
 
 def next_turn(snake, food):
@@ -49,7 +62,7 @@ def next_turn(snake, food):
 
     snake.coordinates.insert(0, (x, y))
 
-    square = canvas.create_rectangle(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=SNAKE_COLOR)
+    square = canvas.create_rectangle(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=snake.color)
     snake.squares.insert(0, square)
 
     if x == food.coordinates[0] and y == food.coordinates[1]:
@@ -61,13 +74,11 @@ def next_turn(snake, food):
         canvas.delete(f"food")
 
         food = Food()
+        snake.change_color()  # Change the snake's color when it eats food
 
     else:
-
         del snake.coordinates[-1]
-
         canvas.delete(snake.squares[-1])
-
         del snake.squares[-1]
 
     if check_collision(snake):
@@ -100,16 +111,13 @@ def check_collision(snake):
     x, y = snake.coordinates[0]
 
     if x < 0 or x >= GAME_WIDTH:
-        print("GAME OVER")
         return True
 
     elif y < 0 or y >= GAME_HEIGHT:
-        print("GAME OVER")
         return True
 
     for body_part in snake.coordinates[1:]:
         if x == body_part[0] and y == body_part[1]:
-            print("GAME OVER")
             return True
 
     return False
@@ -126,7 +134,7 @@ def countdown(seconds):
     if seconds > 0:
         canvas.delete("countdown")
         canvas.create_text(canvas.winfo_width() / 2, canvas.winfo_height() / 2 + 70,
-                           font=("consolas", 50), text=str(seconds), fill="green", tag="countdown")
+                           font=("consolas", 50), text=str(seconds), fill="white", tag="countdown")
         window.after(1000, countdown, seconds - 1)
     else:
         restart_game()
